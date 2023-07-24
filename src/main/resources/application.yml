@@ -27,7 +27,7 @@ spring:
         registration:
           naver:
             client-id: N4p3o6XeyhsEZsLG0bjw
-            client-secret: N4p3o6XeyhsEZsLG0bjw
+            client-secret: gD5GH_MqAZ
             redirect-uri: http://localhost:8080/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             scope:
@@ -36,8 +36,8 @@ spring:
               - profile_image
             client-name: Naver
           kakao:
-            client-id: 	342e7bf27eba10f4f52f213866d7146d
-            client-secret: 	1re4dYq6eimqCJUy4SImSIzdOQR1QYck
+            client-id: 342e7bf27eba10f4f52f213866d7146d
+            client-secret: 1re4dYq6eimqCJUy4SImSIzdOQR1QYck
             redirect-uri: http://localhost:8080/login/oauth2/code/kakao
             client-authentication-method: POST
             authorization-grant-type: authorization_code
@@ -58,11 +58,11 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 jwt:
-  secretkey: fasfdasfljalsdfA23232BDJFISOFD323232
+  secretKey: fasfdasfljalsdfA23232BDJFISOFD323232
   access:
-    expiration: 3600000 # 1??(60?) (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h))
+    expiration: 10000 # 1??(60?) (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h))
     header: Authorization
 
-    refresh:
-      expiration: 1209600000 #  (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h) * 24L(h -> ??) * 14(2?))
-      header: Authorization-refresh
+  refresh:
+    expiration: 1209600000 #  (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h) * 24L(h -> ??) * 14(2?))
+    header: Authorization-refresh
