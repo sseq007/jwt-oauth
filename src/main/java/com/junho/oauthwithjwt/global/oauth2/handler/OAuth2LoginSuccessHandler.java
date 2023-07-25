@@ -1,6 +1,7 @@
 package com.junho.oauthwithjwt.global.oauth2.handler;
 
 import com.junho.oauthwithjwt.domain.user.Role;
+import com.junho.oauthwithjwt.domain.user.User;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
 import com.junho.oauthwithjwt.global.jwt.service.JwtService;
 import com.junho.oauthwithjwt.global.oauth2.CustomOAuth2User;
@@ -51,10 +52,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private void loginSuccess(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
         String accessToken = jwtService.createAccessToken(oAuth2User.getEmail());
         String refreshToken = jwtService.createRefreshToken();
+        Long accessTokenExp = jwtService.extractExpirationTimestamp(accessToken).orElse(null);
         response.addHeader(jwtService.getAccessHeader(), "Bearer " + accessToken);
         response.addHeader(jwtService.getRefreshHeader(), "Bearer " + refreshToken);
+        response.addHeader("exp",Long.toString(accessTokenExp));
+        System.out.println("accessToken = " + accessToken);
+        System.out.println("refreshToken = " + refreshToken);
+        System.out.println("accessTokenExp = " + accessTokenExp);
 
+        User user = userRepository.findByEmail(oAuth2User.getEmail()).orElse(null);
+
+        user.updateRefreshToken(refreshToken);
+
+        response.sendRedirect("oauth2/sign-up");
         jwtService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
         jwtService.updateRefreshToken(oAuth2User.getEmail(), refreshToken);
+
     }
 }

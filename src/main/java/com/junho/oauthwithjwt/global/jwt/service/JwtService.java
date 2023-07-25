@@ -2,15 +2,18 @@ package com.junho.oauthwithjwt.global.jwt.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
@@ -34,6 +37,7 @@ public class JwtService {
 
     @Value("${jwt.refresh.header}")
     private String refreshHeader;
+
 
 
     /**
@@ -95,6 +99,7 @@ public class JwtService {
     public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
         response.setStatus(HttpServletResponse.SC_OK);
 
+//        System.out.println("refreshToken = " + refreshToken);
         setAccessTokenHeader(response, accessToken);
         setRefreshTokenHeader(response, refreshToken);
         log.info("Access Token, Refresh Token 헤더 설정 완료");
@@ -110,6 +115,7 @@ public class JwtService {
                 .filter(refreshToken -> refreshToken.startsWith(BEARER))
                 .map(refreshToken -> refreshToken.replace(BEARER, ""));
     }
+
 
     /**
      * 헤더에서 AccessToken 추출
@@ -143,6 +149,22 @@ public class JwtService {
         }
     }
 
+    public Optional<Long> extractExpirationTimestamp(String accessToken) {
+        try {
+            DecodedJWT decode = JWT.decode(accessToken);
+            // Extract the expiration time (exp claim) from the claims
+
+            Date expriationDate = decode.getExpiresAt();
+
+            long expirationTimestamp = expriationDate.getTime() / 1000;
+            // If the token is still valid, return the expiration timestamp
+            return Optional.of(expirationTimestamp);
+        } catch (Exception e) {
+            log.error("accessToken 만료기간 추출 실패!!");
+            return Optional.empty();
+        }
+    }
+
     /**
      * AccessToken 헤더 설정
      */
@@ -157,9 +179,13 @@ public class JwtService {
         response.setHeader(refreshHeader, refreshToken);
     }
 
+
+
     /**
      * RefreshToken DB 저장(업데이트)
      */
+
+   @Transactional
     public void updateRefreshToken(String email, String refreshToken) {
         userRepository.findByEmail(email)
                 .ifPresentOrElse(

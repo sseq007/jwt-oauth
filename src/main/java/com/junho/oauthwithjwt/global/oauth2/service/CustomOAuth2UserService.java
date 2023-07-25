@@ -4,6 +4,7 @@ package com.junho.oauthwithjwt.global.oauth2.service;
 import com.junho.oauthwithjwt.domain.user.SocialType;
 import com.junho.oauthwithjwt.domain.user.User;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
+import com.junho.oauthwithjwt.global.jwt.service.JwtService;
 import com.junho.oauthwithjwt.global.oauth2.CustomOAuth2User;
 import com.junho.oauthwithjwt.global.oauth2.OAuthAttributes;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final UserRepository userRepository;
 
+    private final JwtService jwtService;
     private static final String NAVER = "naver";
     private static final String KAKAO = "kakao";
 
@@ -47,12 +49,17 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
          * http://localhost:8080/oauth2/authorization/kakao에서 kakao가 registrationId
          * userNameAttributeName은 이후에 nameAttributeKey로 설정된다.
          */
+
+        System.out.println("userRequest.getAccessToken() = " + userRequest.getAccessToken());
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         SocialType socialType = getSocialType(registrationId);
         String userNameAttributeName = userRequest.getClientRegistration()
                 .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName(); // OAuth2 로그인 시 키(PK)가 되는 값
+//        System.out.println("userRequest = " + userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes(); // 소셜 로그인에서 API가 제공하는 userInfo의 Json 값(유저 정보들)
 
+
+//        jwtService.extractRefreshToken()
         // socialType에 따라 유저 정보를 통해 OAuthAttributes 객체 생성
         OAuthAttributes extractAttributes = OAuthAttributes.of(socialType, userNameAttributeName, attributes);
 
