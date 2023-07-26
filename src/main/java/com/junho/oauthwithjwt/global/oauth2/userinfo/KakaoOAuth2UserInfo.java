@@ -22,7 +22,7 @@ public class KakaoOAuth2UserInfo extends OAuth2UserInfo{
             return null;
         }
 
-//        System.out.println((String) profile.get("nickname"));
+
         return (String) profile.get("nickname");
     }
 

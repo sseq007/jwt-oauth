@@ -50,14 +50,14 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
          * userNameAttributeName은 이후에 nameAttributeKey로 설정된다.
          */
 
-        System.out.println("userRequest.getAccessToken() = " + userRequest.getAccessToken());
+//        System.out.println("userRequest.getAccessToken() = " + userRequest.getAccessToken());
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         SocialType socialType = getSocialType(registrationId);
         String userNameAttributeName = userRequest.getClientRegistration()
                 .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName(); // OAuth2 로그인 시 키(PK)가 되는 값
 //        System.out.println("userRequest = " + userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes(); // 소셜 로그인에서 API가 제공하는 userInfo의 Json 값(유저 정보들)
-
+        System.out.println("attributes = " + attributes.toString());
 
 //        jwtService.extractRefreshToken()
         // socialType에 따라 유저 정보를 통해 OAuthAttributes 객체 생성

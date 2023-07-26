@@ -29,12 +29,12 @@ spring:
       client:
         registration:
           naver:
-            client-id: N4p3o6XeyhsEZsLG0bjw
-            client-secret: gD5GH_MqAZ
+            client-id: mnX6BbAZD4pm3XzHHq7K
+            client-secret: 6u94fxe0Ah
             redirect-uri: http://localhost:8080/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             scope:
-              - name
+              - nickname
               - email
               - profile_image
             client-name: Naver

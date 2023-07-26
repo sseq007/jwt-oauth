@@ -68,6 +68,8 @@ public class OAuthAttributes {
      * role은 GUEST로 설정
      */
     public Member toEntity(SocialType socialType, OAuth2UserInfo oauth2UserInfo) {
+//        System.out.println("oauth2UserInfo = " + oauth2UserInfo.toString());
+        System.out.println("oauth2UserInfo = " + oauth2UserInfo.getNickname());
         return Member.builder()
                 .socialType(socialType)
                 .socialId(oauth2UserInfo.getId())
