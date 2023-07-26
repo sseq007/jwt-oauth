@@ -76,7 +76,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
             String redisRefreshToken = redisTemplate.opsForValue().get(email);
 
-            checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
+            checkRefreshTokenAndReIssueAccessToken(response, refreshToken,redisRefreshToken,email);
             System.out.println("+redisRefresh "+redisRefreshToken);
             return; // RefreshToken을 보낸 경우에는 AccessToken을 재발급 하고 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
         }
@@ -90,16 +90,25 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     }
 
-    private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
+    private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken, String redisRefreshToken, String email) {
+
+
+        if (refreshToken.equals(redisRefreshToken)) {
+            String reIssueRefreshToken = reIssueRefreshToken(email);
+            jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(email), reIssueRefreshToken);
+        } else {
+
+//            exception 처리
+        }
 
 
 
 
-        userRepository.findByRefreshToken(refreshToken)
-                .ifPresent(user -> {
-                    String reIssueRefreshToken = reIssueRefreshToken(user);
-                    jwtService.sendAccessAndRefreshToken(response,jwtService.createAccessToken(user.getEmail()),reIssueRefreshToken);
-                });
+//        userRepository.findByRefreshToken(refreshToken)
+//                .ifPresent(user -> {
+//                    String reIssueRefreshToken = reIssueRefreshToken(user);
+//                    jwtService.sendAccessAndRefreshToken(response,jwtService.createAccessToken(user.getEmail()),reIssueRefreshToken);
+//                });
     }
 
     /**
@@ -108,10 +117,10 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      * DB에 재발급한 리프레시 토큰 업데이트 후 Flush
      */
 
-    private String reIssueRefreshToken(Member member) {
+    private String reIssueRefreshToken(String email) {
         String reIssuedRefreshToken = jwtService.createRefreshToken();
-        member.updateRefreshToken(reIssuedRefreshToken);
-        userRepository.saveAndFlush(member);
+        // RefreshToken Redis에 업데이트
+        jwtService.updateRefreshToken(email,reIssuedRefreshToken);
         return reIssuedRefreshToken;
     }
 

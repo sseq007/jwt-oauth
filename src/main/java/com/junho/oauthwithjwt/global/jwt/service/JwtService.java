@@ -208,7 +208,7 @@ public class JwtService {
    @Transactional
     public void updateRefreshToken(String email, String refreshToken) {
        Member member = userRepository.findByEmail(email).get();
-
+       System.out.println("refreshTokendb저장 = " + refreshToken);
        if (member != null) {
            redisTemplate.opsForValue().set(
                    email,

@@ -67,7 +67,7 @@ jwt:
     header: Authorization
 
   refresh:
-    expiration: 1209600000  #  (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h) * 24L(h -> ??) * 14(2?))
+    expiration: 120000  #  (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h) * 24L(h -> ??) * 14(2?))
     header: Authorization-refresh
 
 redis:
