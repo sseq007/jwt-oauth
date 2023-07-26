@@ -2,7 +2,7 @@ package com.junho.oauthwithjwt.global.oauth2.service;
 
 
 import com.junho.oauthwithjwt.domain.user.SocialType;
-import com.junho.oauthwithjwt.domain.user.User;
+import com.junho.oauthwithjwt.domain.user.Member;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
 import com.junho.oauthwithjwt.global.jwt.service.JwtService;
 import com.junho.oauthwithjwt.global.oauth2.CustomOAuth2User;
@@ -63,14 +63,14 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         // socialType에 따라 유저 정보를 통해 OAuthAttributes 객체 생성
         OAuthAttributes extractAttributes = OAuthAttributes.of(socialType, userNameAttributeName, attributes);
 
-        User createdUser = getUser(extractAttributes, socialType); // getUser() 메소드로 User 객체 생성 후 반환
+        Member createdMember = getUser(extractAttributes, socialType); // getUser() 메소드로 User 객체 생성 후 반환
         // DefaultOAuth2User를 구현한 CustomOAuth2User 객체를 생성해서 반환
         return new CustomOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(createdUser.getRole().getKey())),
+                Collections.singleton(new SimpleGrantedAuthority(createdMember.getRole().getKey())),
                 attributes,
                 extractAttributes.getNameAttributeKey(),
-                createdUser.getEmail(),
-                createdUser.getRole()
+                createdMember.getEmail(),
+                createdMember.getRole()
         );
     }
 
@@ -79,19 +79,20 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
      * SocialType과 attributes에 들어있는 소셜 로그인의 식별값 id를 통해 회원을 찾아 반환하는 메소드
      * 만약 찾은 회원이 있다면, 그대로 반환하고 없다면 saveUser()를 호출하여 회원을 저장한다.
      */
-    private User getUser(OAuthAttributes attributes, SocialType socialType) {
-        User findUser = userRepository.findBySocialTypeAndSocialId(socialType, attributes.getOauth2UserInfo().getId()).orElse(null);
+    private Member getUser(OAuthAttributes attributes, SocialType socialType) {
+        Member findMember = userRepository.findBySocialTypeAndSocialId(socialType, attributes.getOauth2UserInfo().getId()).orElse(null);
 
-        if (findUser == null) {
+        if (findMember == null) {
             return saveUser(attributes, socialType);
         }
 
-        return findUser;
+        return findMember;
     }
 
-    private User saveUser(OAuthAttributes attributes, SocialType socialType) {
-        User createdUser = attributes.toEntity(socialType, attributes.getOauth2UserInfo());
-        return userRepository.save(createdUser);
+    private Member saveUser(OAuthAttributes attributes, SocialType socialType) {
+        Member createdMember = attributes.toEntity(socialType, attributes.getOauth2UserInfo());
+        System.out.println("createdMember.getNickname() = " + createdMember.getNickname());
+        return userRepository.save(createdMember);
     }
 
     private SocialType getSocialType(String registrationId) {

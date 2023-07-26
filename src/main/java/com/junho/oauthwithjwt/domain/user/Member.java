@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @Builder
 @AllArgsConstructor
-public class User {
+public class Member {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")

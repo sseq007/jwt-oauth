@@ -3,14 +3,13 @@ package com.junho.oauthwithjwt.global.oauth2;
 
 import com.junho.oauthwithjwt.domain.user.Role;
 import com.junho.oauthwithjwt.domain.user.SocialType;
-import com.junho.oauthwithjwt.domain.user.User;
+import com.junho.oauthwithjwt.domain.user.Member;
 import com.junho.oauthwithjwt.global.oauth2.userinfo.KakaoOAuth2UserInfo;
 
 import com.junho.oauthwithjwt.global.oauth2.userinfo.NaverOAuth2UserInfo;
 import com.junho.oauthwithjwt.global.oauth2.userinfo.OAuth2UserInfo;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Map;
 import java.util.UUID;
@@ -68,8 +67,8 @@ public class OAuthAttributes {
      * email에는 UUID로 중복 없는 랜덤 값 생성
      * role은 GUEST로 설정
      */
-    public User toEntity(SocialType socialType, OAuth2UserInfo oauth2UserInfo) {
-        return User.builder()
+    public Member toEntity(SocialType socialType, OAuth2UserInfo oauth2UserInfo) {
+        return Member.builder()
                 .socialType(socialType)
                 .socialId(oauth2UserInfo.getId())
                 .email(UUID.randomUUID() + "@socialUser.com")

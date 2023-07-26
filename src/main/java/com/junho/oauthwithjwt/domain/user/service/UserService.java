@@ -1,7 +1,7 @@
 package com.junho.oauthwithjwt.domain.user.service;
 
 import com.junho.oauthwithjwt.domain.user.Role;
-import com.junho.oauthwithjwt.domain.user.User;
+import com.junho.oauthwithjwt.domain.user.Member;
 import com.junho.oauthwithjwt.domain.user.dto.UserSignUpDto;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,15 +30,15 @@ public class UserService {
             throw new Exception("이미 존재하는 닉네임입니다");
         }
 
-        User user = User.builder()
+        Member member = Member.builder()
                 .email(userSignUpDto.getEmail())
                 .password(userSignUpDto.getPassword())
                 .nickname(userSignUpDto.getNickname())
                 .role(Role.USER)
                 .build();
 
-        user.passwordEncode(passwordEncoder);
-        userRepository.save(user);
+        member.passwordEncode(passwordEncoder);
+        userRepository.save(member);
 
     }
 

@@ -1,11 +1,12 @@
 package com.junho.oauthwithjwt.global.jwt.filter;
 
-import com.junho.oauthwithjwt.domain.user.User;
+import com.junho.oauthwithjwt.domain.user.Member;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
 import com.junho.oauthwithjwt.global.jwt.service.JwtService;
 import com.junho.oauthwithjwt.global.jwt.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -41,6 +42,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
+    private final RedisTemplate<String, String> redisTemplate;
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
 
 
@@ -69,7 +71,13 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         // RefreshToken까지 보낸 것이므로 리프레시 토큰이 DB의 리프레시 토큰과 일치하는지 판단 후,
         // 일치한다면 AccessToken을 재발급해준다.
         if (refreshToken != null) {
+            String accessToken = jwtService.extractAccessToken(request).orElse(null);
+            String email = jwtService.extractEmail2(accessToken).orElse(null);
+
+            String redisRefreshToken = redisTemplate.opsForValue().get(email);
+
             checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
+            System.out.println("+redisRefresh "+redisRefreshToken);
             return; // RefreshToken을 보낸 경우에는 AccessToken을 재발급 하고 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
         }
 
@@ -84,6 +92,9 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
 
+
+
+
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(user -> {
                     String reIssueRefreshToken = reIssueRefreshToken(user);
@@ -97,10 +108,10 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      * DB에 재발급한 리프레시 토큰 업데이트 후 Flush
      */
 
-    private String reIssueRefreshToken(User user) {
+    private String reIssueRefreshToken(Member member) {
         String reIssuedRefreshToken = jwtService.createRefreshToken();
-        user.updateRefreshToken(reIssuedRefreshToken);
-        userRepository.saveAndFlush(user);
+        member.updateRefreshToken(reIssuedRefreshToken);
+        userRepository.saveAndFlush(member);
         return reIssuedRefreshToken;
     }
 
@@ -138,22 +149,25 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      * SecurityContextHolder.getContext()로 SecurityContext를 꺼낸 후,
      * setAuthentication()을 이용하여 위에서 만든 Authentication 객체에 대한 인증 허가 처리
      */
-    public void saveAuthentication(User myUser) {
-        String password = myUser.getPassword();
+    public void saveAuthentication(Member myMember) {
+
+        log.info("saveAuthentication 호출()");
+        String password = myMember.getPassword();
         if (password == null) { // 소셜 로그인 유저의 비밀번호 임의로 설정 하여 소셜 로그인 유저도 인증 되도록 설정
             password = PasswordUtil.generateRandomPassword();
         }
 
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
-                .username(myUser.getEmail())
+                .username(myMember.getEmail())
                 .password(password)
-                .roles(myUser.getRole().name())
+                .roles(myMember.getRole().name())
                 .build();
 
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(userDetailsUser, null,
                         authoritiesMapper.mapAuthorities(userDetailsUser.getAuthorities()));
 
+        System.out.println("인증 중중중중");
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

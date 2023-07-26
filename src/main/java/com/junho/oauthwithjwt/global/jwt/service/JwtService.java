@@ -3,11 +3,14 @@ package com.junho.oauthwithjwt.global.jwt.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.junho.oauthwithjwt.domain.user.Member;
 import com.junho.oauthwithjwt.domain.user.repository.UserRepository;
+import com.junho.oauthwithjwt.global.handler.ex.CustomApiException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class JwtService {
     private String refreshHeader;
 
 
+    private final RedisTemplate<String,String> redisTemplate;
 
     /**
      * JWT의 Subject와 Claim으로 email 사용 -> 클레임의 name을 "email"으로 설정
@@ -145,10 +150,25 @@ public class JwtService {
                     .asString());
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
-            return Optional.empty();
+            throw new CustomApiException("액세스 토큰이 유효하지 않습니다.");
+//            return Optional.empty();
         }
     }
 
+    public Optional<String> extractEmail2(String accessToken) {
+        try {
+            DecodedJWT decode = JWT.decode(accessToken);
+            String email = decode.getClaim(EMAIL_CLAIM)
+                    .asString();
+
+            return Optional.of(email);
+
+        } catch (Exception e) {
+            log.error("액세스 토큰이 유효하지 않습니다.");
+            throw new CustomApiException("액세스 토큰이 유효하지 않습니다.");
+//            return Optional.empty();
+        }
+    }
     public Optional<Long> extractExpirationTimestamp(String accessToken) {
         try {
             DecodedJWT decode = JWT.decode(accessToken);
@@ -187,20 +207,34 @@ public class JwtService {
 
    @Transactional
     public void updateRefreshToken(String email, String refreshToken) {
-        userRepository.findByEmail(email)
-                .ifPresentOrElse(
-                        user -> user.updateRefreshToken(refreshToken),
-                        () -> new Exception("일치하는 회원이 없습니다.")
-                );
+       Member member = userRepository.findByEmail(email).get();
+
+       if (member != null) {
+           redisTemplate.opsForValue().set(
+                   email,
+                   refreshToken,
+                   refreshTokenExpirationPeriod,
+                   TimeUnit.MILLISECONDS
+
+           );
+       } else {
+            throw new CustomApiException("일치하는 회원이 없습니다.")    ;
+       }
+//                .ifPresentOrElse(
+//
+//                        () -> new CustomApiException("일치하는 회원이 없습니다.")
+//                );
     }
 
     public boolean isTokenValid(String token) {
         try {
+            System.out.println("유효한지 인증한다잉 ");
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             return true;
         } catch (Exception e) {
             log.error("유효하지 않은 토큰입니다. {}", e.getMessage());
-            return false;
+            throw new CustomApiException(e.getMessage());
+//            return false;
         }
     }
 

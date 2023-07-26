@@ -1,12 +1,13 @@
 package com.junho.oauthwithjwt.domain.user.controller;
 
+import com.junho.oauthwithjwt.domain.user.dto.TokenDto;
 import com.junho.oauthwithjwt.domain.user.dto.UserSignUpDto;
 import com.junho.oauthwithjwt.domain.user.service.UserService;
+import com.junho.oauthwithjwt.global.handler.CMRespDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,8 +24,16 @@ public class UserController {
     }
 
     @GetMapping("/jwt-test")
-    private String jwtTest() {
+    private ResponseEntity<?> jwtTest() {
 
-        return "jwtTest 요청 성공";
+        return new ResponseEntity(new CMRespDto<>(1, "jwt-test 성공", null), HttpStatus.OK);
+    }
+
+
+    @GetMapping(path = "/message")
+    public ResponseEntity<TokenDto> messageForHeader(@RequestHeader("Authorization") String access) {
+        System.out.println("access = " + access);
+//        System.out.println("refresh = " + refresh);
+        return new ResponseEntity<>(new TokenDto(access), HttpStatus.ACCEPTED);
     }
 }

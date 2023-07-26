@@ -10,9 +10,11 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/security?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://localhost:3306/security?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=UTF-8
     username: ssafy
-    password: ssafy1234
+    password: ssafy
+
+
 
   jpa:
     hibernate:
@@ -20,6 +22,7 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
+    database-platform: org.hibernate.dialect.MySQL57Dialect
 
   security:
     oauth2:
@@ -60,9 +63,13 @@ spring:
 jwt:
   secretKey: fasfdasfljalsdfA23232BDJFISOFD323232
   access:
-    expiration: 3600000 # 1??(60?) (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h))
+    expiration: 60000 # 1??(60?) (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h))
     header: Authorization
 
   refresh:
     expiration: 1209600000  #  (1000L(ms -> s) * 60L(s -> m) * 60L(m -> h) * 24L(h -> ??) * 14(2?))
     header: Authorization-refresh
+
+redis:
+  host: localhost
+  port: 6379
